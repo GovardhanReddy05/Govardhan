@@ -194,24 +194,37 @@
             <!-- Personal Information -->
             <div class="form-section">
                 <h3>Personal Information</h3>
-                <input type="text" id="emp_name" name="emp_name" placeholder="Full Name" required>
+                <input type="text" id="emp_name"maxlength="30" name="emp_name" placeholder="Full Name" required>
                 <div id="name-error" class="error-message">Name must be 3-30 alphabetic characters only</div>
                 
-                <input type="email" id="emp_email" name="emp_email" placeholder="Email Address" required>
-                <div id="email-error" class="error-message">Please enter a valid email address</div>
+                <input type="email" id="emp_email" name="emp_email" placeholder="Email Address" required oninput="
+                const gmailIndex = this.value.indexOf('@gmail.com');
+                const isGmail = gmailIndex !== -1;
+                const endsCorrectly = this.value === this.value.substring(0, gmailIndex + 10);
+              
+                if (isGmail && !endsCorrectly) {
+                  this.value = this.value.substring(0, gmailIndex + 10);
+                  document.getElementById('email-error').style.display = 'block';
+                  document.getElementById('email-error').innerText = 'Only one @gmail.com is allowed';
+                } else {
+                  document.getElementById('email-error').style.display = 'none';
+                }
+              ">
+              <div id="email-error" class="error-message">Please Enter Valid Email Only</div>
+              
                 
                 <label>Date of Birth</label>
                 <input type="date" id="emp_dob" name="emp_dob" required>
                 <div id="dob-error" class="error-message">Employee must be at least 20 years old</div>
                 
-                <input type="tel" id="emp_mobile" name="emp_mobile" placeholder="Mobile Number" required>
+                <input type="tel" id="emp_mobile" name="emp_mobile" maxlength="10" placeholder="Mobile Number" required>
                 <div id="mobile-error" class="error-message">Please enter a valid 10-digit phone number</div>
             </div>
             
             <!-- Address Information -->
             <div class="form-section">
                 <h3>Address Information</h3>
-                <input type="text" id="emp_address" name="emp_address" placeholder="Street Address" required>
+                <input type="text" id="emp_address" maxlength="50" name="emp_address" placeholder="Street Address" required>
                 <div id="address-error" class="error-message">Address must be 5-50 characters</div>
                 
                 <input type="text" id="emp_city" name="emp_city" placeholder="City" required>
@@ -265,10 +278,10 @@
                 <input type="text" id="emp_bank" name="emp_bank" placeholder="Bank Name" required>
                 <div id="bank-error" class="error-message">Please enter a valid bank name</div>
                 
-                <input type="text" id="emp_account" name="emp_account" placeholder="Account Number" required>
+                <input type="text" id="emp_account" name="emp_account" placeholder="Account Number" maxlength="18" required>
                 <div id="account-error" class="error-message">Account number must be 9-18 digits</div>
                 
-                <input type="text" id="emp_ifsc" name="emp_ifsc" placeholder="IFSC Code" required>
+                <input type="text" id="emp_ifsc" name="emp_ifsc" placeholder="IFSC Code" maxlength="11" required>
                 <div id="ifsc-error" class="error-message">Please enter a valid IFSC code (e.g. ABCD0123456)</div>
             </div>
             
@@ -311,7 +324,7 @@
                 <div id="exp-status-error" class="error-message">Please select experience status</div>
                 
                 <div id="experienceFields" style="display:none;">
-                    <input type="text" id="emp_company_name" name="emp_company_name" placeholder="Previous Company Name">
+                    <input type="text" id="emp_company_name" name="emp_company_name" placeholder="Previous Company Name" maxlength="25">
                     <div id="company-error" class="error-message">Please enter a valid company name characters must be 2-25 characters</div>
                     
                     <input type="text" id="emp_years_of_experience" name="emp_years_of_experience" placeholder="Years of Experience">
