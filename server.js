@@ -2,37 +2,40 @@ require('dotenv').config();
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const { Pool, Client } = require("pg");
+const { Client } = require("pg");
 const cors = require("cors");
 const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Setup CORS to allow cross-origin requests from the frontend
+// Allow frontend access
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL,   // Allow URL from .env file
-    "http://localhost:3001",    // Allow the frontend running on this port
-    "http://127.0.0.1:5500",   // Allow frontend running on port 5500
-    "http://localhost:5500"     // Allow frontend running on localhost port 5500
+    process.env.FRONTEND_URL,
+    "http://localhost:3001",
+    "http://127.0.0.1:5500",
+    "http://localhost:5500"
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true  // Allow cookies to be sent with the request
+  credentials: true
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Setup the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded files
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+app.use('/uploads', express.static(uploadDir));
 
-// PostgreSQL client setup for the backend server
+// Fix favicon error
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// PostgreSQL setup
 const client = new Client({
   user: process.env.DB_USER || 'postgres',
   host: process.env.DB_HOST || 'localhost',
@@ -41,20 +44,12 @@ const client = new Client({
   port: process.env.DB_PORT || 5432,
 });
 
-// PostgreSQL pool setup for the frontend server
-const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "new_employee_db",
-  password: "Reddy@988",
-  port: 5432,
-});
-
-// Connect to PostgreSQL for the backend API
+// Connect and create table
 const connectToDatabase = async () => {
   try {
     await client.connect();
     console.log("Connected to PostgreSQL database");
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS emp_onboarding (
         id SERIAL PRIMARY KEY,
@@ -83,6 +78,7 @@ const connectToDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
     console.log("Verified emp_onboarding table exists");
   } catch (err) {
     console.error("Database connection error:", err.message);
@@ -91,33 +87,29 @@ const connectToDatabase = async () => {
 };
 connectToDatabase();
 
-// Setup multer for file uploads
+// Setup multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueName + path.extname(file.originalname));
   }
 });
-
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only PDF, JPEG, and PNG files are allowed.'), false);
+    cb(new Error('Invalid file type.'), false);
   }
 };
-
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }  // 5 MB limit
+  limits: { fileSize: 5 * 1024 * 1024 } // 5 MB
 });
 
-// Backend API: Save Employee Data (POST)
+// Save employee route
 app.post("/save-employee", upload.fields([
   { name: "emp_experience_doc", maxCount: 1 },
   { name: "emp_ssc_doc", maxCount: 1 },
@@ -125,13 +117,6 @@ app.post("/save-employee", upload.fields([
   { name: "emp_grad_doc", maxCount: 1 }
 ]), async (req, res) => {
   try {
-    if (!req.body.emp_name || !req.body.emp_email) {
-      return res.status(400).json({
-        success: false,
-        error: "Name and email are required fields"
-      });
-    }
-
     const {
       emp_name, emp_email, emp_dob, emp_mobile, emp_address, emp_city,
       emp_state, emp_zipcode, emp_bank, emp_account, emp_ifsc, emp_job_role,
@@ -139,33 +124,23 @@ app.post("/save-employee", upload.fields([
       emp_joining_date, emp_terms_accepted
     } = req.body;
 
-    const sql = `
-      INSERT INTO emp_onboarding 
-      (emp_name, emp_email, emp_dob, emp_mobile, emp_address, emp_city, emp_state, 
-      emp_zipcode, emp_bank, emp_account, emp_ifsc, emp_job_role, emp_department, 
-      emp_experience_status, emp_company_name, emp_years_of_experience, emp_joining_date, 
-      emp_experience_doc, emp_ssc_doc, emp_inter_doc, emp_grad_doc, emp_terms_accepted) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
-      RETURNING id
-    `;
-
     const values = [
-      emp_name, 
-      emp_email, 
-      emp_dob, 
-      emp_mobile, 
-      emp_address, 
+      emp_name,
+      emp_email,
+      emp_dob,
+      emp_mobile,
+      emp_address,
       emp_city,
-      emp_state, 
-      emp_zipcode, 
-      emp_bank, 
-      emp_account, 
-      emp_ifsc, 
+      emp_state,
+      emp_zipcode,
+      emp_bank,
+      emp_account,
+      emp_ifsc,
       emp_job_role,
-      emp_department, 
-      emp_experience_status === 'true', 
+      emp_department,
+      emp_experience_status === 'true',
       emp_company_name || null,
-      emp_years_of_experience ? parseInt(emp_years_of_experience) : null, 
+      emp_years_of_experience ? parseInt(emp_years_of_experience) : null,
       emp_joining_date,
       req.files["emp_experience_doc"]?.[0]?.filename || null,
       req.files["emp_ssc_doc"]?.[0]?.filename || null,
@@ -174,46 +149,35 @@ app.post("/save-employee", upload.fields([
       emp_terms_accepted === 'true'
     ];
 
-    const result = await client.query(sql, values);
+    const query = `
+      INSERT INTO emp_onboarding (
+        emp_name, emp_email, emp_dob, emp_mobile, emp_address, emp_city,
+        emp_state, emp_zipcode, emp_bank, emp_account, emp_ifsc, emp_job_role,
+        emp_department, emp_experience_status, emp_company_name, emp_years_of_experience,
+        emp_joining_date, emp_experience_doc, emp_ssc_doc, emp_inter_doc, emp_grad_doc,
+        emp_terms_accepted
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+      RETURNING id
+    `;
 
-    res.status(201).json({ 
+    const result = await client.query(query, values);
+
+    res.status(201).json({
       success: true,
       message: "Employee added successfully",
-      employeeId: result.rows[0].id,
-      employee: {
-        id: result.rows[0].id,
-        emp_name,
-        emp_email
-      }
+      employeeId: result.rows[0].id
     });
 
   } catch (err) {
-    console.error("Error in /save-employee:", err);
-
-    if (req.files) {
-      Object.values(req.files).forEach(fileArray => {
-        fileArray.forEach(file => {
-          try {
-            fs.unlinkSync(path.join(uploadDir, file.filename));
-          } catch (unlinkErr) {
-            console.error("Error deleting file:", unlinkErr);
-          }
-        });
-      });
-    }
-
-    res.status(500).json({ 
-      success: false,
-      error: "Database error",
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+    console.error("Error saving employee:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Frontend API: Fetch Employee Data (GET)
+// List employees
 app.get("/employees", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM emp_onboarding");  
+    const result = await client.query("SELECT * FROM emp_onboarding");
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -221,14 +185,12 @@ app.get("/employees", async (req, res) => {
   }
 });
 
-// Health Check Route
+// Health check
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "OK",
-    timestamp: new Date().toISOString()
-  });
+  res.status(200).json({ status: "OK", time: new Date().toISOString() });
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -102,7 +102,7 @@
             animation-duration: 15s;
         }
 
-        /* LAYOUT */
+      
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -132,7 +132,7 @@
             box-shadow: 0 12px 22px rgba(0, 0, 0, 0.1);
         }
 
-        /* CARD HEADER */
+        
         .card-header {
             background: linear-gradient(to right, #2d3bfea7, #1078b9);
             color: #ffffff;
@@ -151,7 +151,7 @@
             opacity: 0.95;
         }
 
-        /* CARD BODY */
+       
         .card-body {
             padding: 1.8rem;
         }
@@ -217,12 +217,13 @@
             border: none;
             align-items: center;
             gap: 0.5rem;
-            color: white;
+            color: rgb(0, 0, 0);
             text-decoration: none;
         }
 
         .btn:hover {
             background:linear-gradient( #a1009e,rgb(0, 0, 133));
+            color:white;
         }
 
         .modal {
@@ -300,7 +301,7 @@
         }
 
         .info-item strong {
-            font-size: 0.95rem;
+            font-size: 1.2rem;
             display: block;
             margin-bottom: 0.4rem;
             color: #000000;
@@ -319,7 +320,7 @@
 
         .documents-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
         }
@@ -692,7 +693,7 @@
                 }
             });
 
-            // Add event listeners to document download buttons
+            
             document.querySelectorAll('.download-doc').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -757,20 +758,18 @@
         function generatePdf(employee) {
             if (!employee) return;
             
-            // Create new PDF document
+           
             const doc = new jsPDF();
             
-            // Add title
+      
             doc.setFontSize(18);
-            doc.text(`Employee Details: ${employee.emp_name}`, 14, 20);
-            
-            // Add employee image placeholder
+            doc.text(`${employee.emp_name}`, 14, 20);
+           
             doc.setDrawColor(200, 200, 200);
             doc.rect(160, 10, 30, 30, 'S');
             doc.setFontSize(10);
             doc.text('Employee Photo', 160, 45);
             
-            // Personal Information
             doc.setFontSize(12);
             doc.text('Personal Information', 14, 60);
             doc.setFontSize(10);
@@ -791,7 +790,6 @@
                 margin: { left: 14 }
             });
             
-            // Employment Details
             doc.setFontSize(12);
             doc.text('Employment Details', 14, doc.lastAutoTable.finalY + 15);
             doc.setFontSize(10);
@@ -813,7 +811,6 @@
                 margin: { left: 14 }
             });
             
-            // Address Information
             doc.setFontSize(12);
             doc.text('Address Information', 14, doc.lastAutoTable.finalY + 15);
             doc.setFontSize(10);
@@ -834,7 +831,7 @@
                 margin: { left: 14 }
             });
             
-            // Bank Details
+       
             doc.setFontSize(12);
             doc.text('Bank Details', 14, doc.lastAutoTable.finalY + 15);
             doc.setFontSize(10);
@@ -854,7 +851,7 @@
                 margin: { left: 14 }
             });
             
-            // Documents list
+            
             doc.setFontSize(12);
             doc.text('Available Documents', 14, doc.lastAutoTable.finalY + 15);
             doc.setFontSize(10);
@@ -878,7 +875,6 @@
                 margin: { left: 14 }
             });
             
-            // Save the PDF
             doc.save(`Employee_${employee.emp_name.replace(/\s+/g, '_')}_${formatDate(new Date()).replace(/\//g, '-')}.pdf`);
         }
     </script>

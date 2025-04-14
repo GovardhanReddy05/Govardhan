@@ -777,6 +777,9 @@
         function validateExpDoc() {
             const expDoc = document.getElementById('emp_experience_doc');
             const error = document.getElementById('exp-doc-error');
+            const isHttps = window.location.protocol === 'https:';
+            const fileUrl = `${isHttps ? 'https' : 'http'}://${window.location.host}/uploads/somefile.pdf`;
+
             if (experienceStatus.value === 'Experienced' && !validateFile(expDoc)) {
                 error.style.display = 'block';
                 return false;
@@ -789,6 +792,8 @@
         function validateSSCDoc() {
             const sscDoc = document.getElementById('emp_ssc_doc');
             const error = document.getElementById('ssc-error');
+            const isHttps = window.location.protocol === 'https:';
+            const fileUrl = `${isHttps ? 'https' : 'http'}://${window.location.host}/uploads/somefile.pdf`;
             if (!validateFile(sscDoc)) {
                 error.style.display = 'block';
                 return false;
@@ -801,6 +806,8 @@
         function validateInterDoc() {
             const interDoc = document.getElementById('emp_inter_doc');
             const error = document.getElementById('inter-error');
+            const isHttps = window.location.protocol === 'https:';
+            const fileUrl = `${isHttps ? 'https' : 'http'}://${window.location.host}/uploads/somefile.pdf`;
             if (!validateFile(interDoc)) {
                 error.style.display = 'block';
                 return false;
@@ -813,6 +820,8 @@
         function validateGradDoc() {
             const gradDoc = document.getElementById('emp_grad_doc');
             const error = document.getElementById('grad-error');
+            const isHttps = window.location.protocol === 'https:';
+            const fileUrl = `${isHttps ? 'https' : 'http'}://${window.location.host}/uploads/somefile.pdf`;
             if (gradDoc.files.length > 0 && !validateFile(gradDoc)) {
                 error.style.display = 'block';
                 return false;
